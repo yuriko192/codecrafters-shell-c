@@ -93,6 +93,7 @@ int execute_external_process(char *input) {
         int status;
         waitpid(pid, &status, 0);
     }
+    return 0;
 }
 
 int main() {
@@ -122,7 +123,7 @@ int main() {
 
         int pid = execute_external_process(input);
         if (pid != 0) {
-            printf("Program Signature: %d\n", pid);
+            // printf("Program Signature: %d\n", pid);
             continue;
         }
 
