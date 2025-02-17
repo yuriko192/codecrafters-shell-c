@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+const string EXIT_COMMAND = "exit 0";
 
 int main() {
   // Flush after every printf
@@ -14,6 +15,13 @@ int main() {
     fgets(input, 100, stdin);
 
     input[strlen(input) - 1] = '\0';
+
+    if (strcomp(input, EXIT_COMMAND)==0)
+    {
+      return 0;
+    }
+    
+
     printf("%s: command not found\n", input);
   }
   
