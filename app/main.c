@@ -29,34 +29,11 @@ const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILT
 
 bool contains_quotes(char *inp) {
     for (size_t i = 0; i < strlen(inp); i++) {
-        if (inp[i] == '\'' || inp[i] == '\"' || inp[i] == '`') {
+        if (inp[i] == '\'') {
             return true;
         }
     }
     return false;
-}
-
-void **split_by_quotes(char *inp, char *argv[], int *argc) {
-    char buffer[256];
-    int quoteCounter = 0;
-    int j = 0;
-
-    for (size_t i = 0; i < strlen(inp); i++, j++) {
-        if (inp[i] != '\'') {
-            buffer[j] = inp[i];
-            continue;
-        }
-
-        quoteCounter++;
-        if (quoteCounter % 2 == 1) {
-            j = -1;
-            continue;
-        }
-
-        buffer[j] = '\0';
-        argv[*argc] = strdup(buffer);
-        (*argc) += 1;
-    }
 }
 
 char *get_executable_fullpath(char *inp_cmd) {
@@ -104,21 +81,17 @@ void execute_type_command(char *inp_cmd) {
 }
 
 void execute_echo_command(char *inp_cmd) {
+    char *format = "%s ";
+    char *delimiter = " ";
     if (contains_quotes(inp_cmd)) {
-        for (int i = 0; i < strlen(inp_cmd); ++i) {
-            if (inp_cmd[i] == '\'') {
-                continue;
-            }
-            printf("%c", inp_cmd[i]);
-        }
-        printf("\n");
-        return;
+        format = "%s";
+        delimiter = "\'";
     }
 
-    char *token = strtok(inp_cmd, " ");
+    char *token = strtok(inp_cmd, delimiter);
     while (token != NULL) {
-        printf("%s ", token);
-        token = strtok(NULL, " ");
+        printf(format, token);
+        token = strtok(NULL, delimiter);
     }
     printf("\n");
 }
@@ -141,47 +114,50 @@ void execute_cd_command(char *new_dir) {
     }
 }
 
-int execute_external_process(char *input) {
-    char *remaining_inp = input;
+bool execute_external_process(char *input) {
     char *argv[10];
     int argc = 0;
+    bool is_contain_quotes = contains_quotes(input);
 
-    char *token = strtok_r(input, " ", &remaining_inp);
-    argv[argc] = token;
-    argc++;
+    char *delimiter = " ";
+    if (is_contain_quotes) {
+        delimiter = "\'";
+    }
 
-    if (contains_quotes(remaining_inp)) {
-        split_by_quotes(remaining_inp, argv, &argc);
-    } else {
-        while ((token = strtok_r(NULL, " ", &remaining_inp)) && argc < 10) {
+    char *token = strtok(input, delimiter);
+    while (token != NULL && argc < 10) {
+        if (strcmp(token, " ") != 0) {
             argv[argc] = token;
             argc++;
         }
+        token = strtok(NULL, delimiter);
     }
 
+    if (is_contain_quotes) {
+        argv[0][strlen(argv[0]) - 1] = '\0';
+    }
     argv[argc] = NULL;
 
     char *execPath = get_executable_fullpath(argv[0]);
     if (execPath == NULL) {
-        return -1;
+        return false;
     }
 
     int pid = fork();
     if (pid == -1) {
         perror("fork failed");
-        return -1;
+        return false;
     }
 
     if (pid == 0) {
         execv(execPath, argv);
         perror("execv");
         exit(1);
-    } else {
-        int status;
-        waitpid(pid, &status, 0);
     }
 
-    return 0;
+    int status;
+    waitpid(pid, &status, 0);
+    return true;
 }
 
 int main() {
@@ -219,8 +195,7 @@ int main() {
             continue;
         }
 
-        int pid = execute_external_process(input);
-        if (pid == 0) {
+        if (execute_external_process(input)) {
             continue;
         }
 
