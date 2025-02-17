@@ -86,8 +86,16 @@ void execute_pwd_command()
 
 void execute_cd_command(char *new_dir)
 {
+
+    if (strncmp(new_dir, "~", 1) == 0)
+    {
+        const char *home_dir = getenv("HOME");
+        snprintf(new_dir, strlen(new_dir) + strlen(home_dir), "%s%s", home_dir, new_dir + 1);
+    }
+
     int cd_res = chdir(new_dir);
-    if(cd_res < 0){
+    if (cd_res < 0)
+    {
         printf("cd: %s: No such file or directory\n", new_dir);
     }
 }
@@ -173,7 +181,6 @@ int main()
             execute_cd_command(input + CD_COMMAND_LEN + 1);
             continue;
         }
-        
 
         int pid = execute_external_process(input);
         if (pid == 0)
