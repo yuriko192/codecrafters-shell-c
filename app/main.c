@@ -120,10 +120,15 @@ void execute_type_command(char *inp_cmd)
 
 void execute_echo_command(char *inp_cmd)
 {
-    char *inputs[10];
-    int argc = 0;
-    split_by_quotes(inp_cmd, inputs, &argc);
-    printf("%s\n", inputs[0]);
+    if (contains_quotes(inp_cmd))
+    {
+        char *inputs[10];
+        int argc = 0;
+        split_by_quotes(inp_cmd, inputs, &argc);
+        printf("%s\n", inputs[0]);
+    }else{
+        printf("%s\n", inp_cmd);
+    }
 }
 
 void execute_pwd_command()
