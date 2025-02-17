@@ -8,17 +8,20 @@ const char EXIT_COMMAND[] = "exit";
 const char ECHO_COMMAND[] = "echo";
 const char TYPE_COMMAND[] = "type";
 const char PWD_COMMAND[] = "pwd";
+const char CD_COMMAND[] = "cd";
 
 const size_t EXIT_COMMAND_LEN = sizeof(EXIT_COMMAND) - 1;
 const size_t ECHO_COMMAND_LEN = sizeof(ECHO_COMMAND) - 1;
 const size_t TYPE_COMMAND_LEN = sizeof(TYPE_COMMAND) - 1;
 const size_t PWD_COMMAND_LEN = sizeof(PWD_COMMAND) - 1;
+const size_t CD_COMMAND_LEN = sizeof(CD_COMMAND) - 1;
 
 const char *BUILTIN_COMMAND_LIST[] = {
     EXIT_COMMAND,
     ECHO_COMMAND,
     TYPE_COMMAND,
-    PWD_COMMAND};
+    PWD_COMMAND,
+    CD_COMMAND};
 
 const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILTIN_COMMAND_LIST[0]);
 
@@ -79,6 +82,14 @@ void execute_pwd_command()
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
     printf("%s\n", cwd);
+}
+
+void execute_cd_command(char *new_dir)
+{
+    int cd_res = chdir(new_dir);
+    if(cd_res < 0){
+        printf("cd: %s: No such file or directory", new_dir);
+    }
 }
 
 int execute_external_process(char *input)
@@ -157,10 +168,16 @@ int main()
             continue;
         }
 
+        if (strncmp(input, CD_COMMAND, CD_COMMAND_LEN) == 0)
+        {
+            execute_cd_command(input + CD_COMMAND_LEN + 1);
+            continue;
+        }
+        
+
         int pid = execute_external_process(input);
         if (pid == 0)
         {
-            // printf("Program Signature: %d\n", pid);
             continue;
         }
 
