@@ -16,7 +16,7 @@ int main() {
 
     input[strlen(input) - 1] = '\0';
 
-    if (strcomp(input, EXIT_COMMAND)==0)
+    if (strcmp(input, EXIT_COMMAND)==0)
     {
       return 0;
     }
