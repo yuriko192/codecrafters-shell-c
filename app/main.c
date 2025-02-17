@@ -88,7 +88,7 @@ void execute_cd_command(char *new_dir)
 {
     int cd_res = chdir(new_dir);
     if(cd_res < 0){
-        printf("cd: %s: No such file or directory", new_dir);
+        printf("cd: %s: No such file or directory\n", new_dir);
     }
 }
 
