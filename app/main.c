@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-const string EXIT_COMMAND = "exit 0";
+const char EXIT_COMMAND[] = "exit 0";
 
 int main() {
   // Flush after every printf
