@@ -1,30 +1,54 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 const char EXIT_COMMAND[] = "exit";
 const char ECHO_COMMAND[] = "echo";
 const char TYPE_COMMAND[] = "type";
 
-const int EXIT_COMMAND_LEN = strlen(EXIT_COMMAND);
-const int ECHO_COMMAND_LEN = strlen(ECHO_COMMAND);
-const int TYPE_COMMAND_LEN = strlen(TYPE_COMMAND);
+const size_t EXIT_COMMAND_LEN = sizeof(EXIT_COMMAND) - 1;
+const size_t ECHO_COMMAND_LEN = sizeof(ECHO_COMMAND) - 1;
+const size_t TYPE_COMMAND_LEN = sizeof(TYPE_COMMAND) - 1;
 
 const char *BUILTIN_COMMAND_LIST[] = {
-  EXIT_COMMAND,
-  ECHO_COMMAND,
-  TYPE_COMMAND
-};
+    EXIT_COMMAND,
+    ECHO_COMMAND,
+    TYPE_COMMAND};
 
 const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILTIN_COMMAND_LIST[0]);
-
 
 int is_valid_builtin_command(char *inp_cmd)
 {
   for (size_t i = 0; i < BUILTIN_COMMAND_COUNT; i++)
   {
-    if (strcmp(inp_cmd, BUILTIN_COMMAND_LIST[i]) == 0) return 1;
+    if (strcmp(inp_cmd, BUILTIN_COMMAND_LIST[i]) == 0)
+      return 1;
   }
   return 0;
+}
+
+char *get_executable_fullpath(char *inp_cmd)
+{
+  char *path_dirs = strdup(getenv("PATH"));
+  static char full_path[1024];
+
+  char *dir = strtok(path_dirs, ":");
+  while (dir != NULL)
+  {
+    snprintf(full_path, sizeof(full_path), "%s/%s", dir, inp_cmd);
+
+    if (access(full_path, X_OK) == 0)
+    { // is_executable
+      free(path_dirs);
+      return full_path;
+    }
+
+    dir = strtok(NULL, ":");
+  }
+
+  free(path_dirs);
+  return NULL;
 }
 
 void execute_type_command(char *inp_cmd)
@@ -32,6 +56,13 @@ void execute_type_command(char *inp_cmd)
   if (is_valid_builtin_command(inp_cmd))
   {
     printf("%s is a shell builtin\n", inp_cmd);
+    return;
+  }
+
+  char *execPath = get_executable_fullpath(inp_cmd);
+  if (execPath != NULL)
+  {
+    printf("%s is %s\n", inp_cmd, execPath);
     return;
   }
 
