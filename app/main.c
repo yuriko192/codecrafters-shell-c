@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 const char EXIT_COMMAND[] = "exit";
 const char ECHO_COMMAND[] = "echo";
@@ -69,6 +70,44 @@ void execute_type_command(char *inp_cmd)
   printf("%s: not found\n", inp_cmd);
 }
 
+int execute_external_process(char *input)
+{
+  char *ext_exec_name = strtok(input, " ");
+  char *execPath = get_executable_fullpath(ext_exec_name);
+  if (execPath == NULL)
+  {
+    return 0;
+  }
+
+  char *argv[10];
+  int argc = 0;
+  char *token = strtok(input, " ");
+  while (token != NULL && argc < 10)
+  {
+    argv[argc++] = token;
+    token = strtok(NULL, " ");
+  }
+
+  int pid = fork();
+  if (pid == -1)
+  {
+    perror("fork failed");
+    return 1;
+  }
+
+  if (pid == 0)
+  {
+    execv(execPath, argv);
+    perror("execv");
+    exit(1);
+  }
+  else
+  {
+    int status;
+    waitpid(pid, &status, 0);
+  }
+}
+
 int main()
 {
   // Flush after every printf
@@ -98,6 +137,13 @@ int main()
     if (strncmp(input, TYPE_COMMAND, TYPE_COMMAND_LEN) == 0)
     {
       execute_type_command(input + TYPE_COMMAND_LEN + 1);
+      continue;
+    }
+
+    int pid = execute_external_process(input);
+    if (pid != 0)
+    {
+      printf("Program Signature: %d\n", pid);
       continue;
     }
 
