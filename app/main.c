@@ -9,7 +9,7 @@ int main() {
   // Wait for user input
   char input[100];
 
-  while(true){
+  while(1){
     printf("$ ");
     fgets(input, 100, stdin);
 
