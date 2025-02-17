@@ -76,13 +76,13 @@ int execute_external_process(char *input) {
 
     char *execPath = get_executable_fullpath(argv[0]);
     if (execPath == NULL) {
-        return 0;
+        return -1;
     }
 
     int pid = fork();
     if (pid == -1) {
         perror("fork failed");
-        return 1;
+        return -1;
     }
 
     if (pid == 0) {
@@ -93,6 +93,7 @@ int execute_external_process(char *input) {
         int status;
         waitpid(pid, &status, 0);
     }
+    
     return 0;
 }
 
@@ -122,7 +123,7 @@ int main() {
         }
 
         int pid = execute_external_process(input);
-        if (pid != 0) {
+        if (pid == 0) {
             // printf("Program Signature: %d\n", pid);
             continue;
         }
