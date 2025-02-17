@@ -62,7 +62,6 @@ void **split_by_quotes(char *inp, char *argv[], int *argc)
 
         buffer[j + 1] = '\0';
         argv[*argc] = strdup(buffer);
-        printf("argc: %d, argv[argc]: %s\n", *argc, argv[*argc]);
         (*argc) += 1;
     }
 }
