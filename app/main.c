@@ -127,7 +127,14 @@ void execute_echo_command(char *inp_cmd)
         split_by_quotes(inp_cmd, inputs, &argc);
         printf("%s\n", inputs[0]);
     }else{
-        printf("%s\n", inp_cmd);
+        char *token = strtok(inp_cmd, " ");
+        while (token != NULL)
+        {
+            printf("%s ", token);
+            token = strtok(NULL, " ");
+        }
+        
+        printf("\n");
     }
 }
 
