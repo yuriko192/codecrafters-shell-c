@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <sys/wait.h>
 
 const char EXIT_COMMAND[] = "exit";
@@ -25,14 +26,45 @@ const char *BUILTIN_COMMAND_LIST[] = {
 
 const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILTIN_COMMAND_LIST[0]);
 
-int is_valid_builtin_command(char *inp_cmd)
+bool contains_quotes(char *inp)
 {
-    for (size_t i = 0; i < BUILTIN_COMMAND_COUNT; i++)
+    for (size_t i = 0; i < strlen(inp); i++)
     {
-        if (strcmp(inp_cmd, BUILTIN_COMMAND_LIST[i]) == 0)
-            return 1;
+        if (inp[i] == '\'' || inp[i] == '\"' || inp[i] == '`')
+        {
+            return true;
+        }
     }
-    return 0;
+    return false;
+}
+
+void **split_by_quotes(char *inp, char *argv[], int *argc)
+{
+
+    char buffer[256];
+    int quoteCounter = 0;
+    int j = 0;
+
+    for (size_t i = 0; i < strlen(inp); i++, j++)
+    {
+        if (inp[i] != '\'')
+        {
+            buffer[j] = inp[i];
+            continue;
+        }
+
+        quoteCounter++;
+        if (quoteCounter % 2 == 1)
+        {
+            j = -1;
+            continue;
+        }
+
+        buffer[j + 1] = '\0';
+        argv[*argc] = strdup(buffer);
+        printf("argc: %d, argv[argc]: %s\n", *argc, argv[*argc]);
+        (*argc) += 1;
+    }
 }
 
 char *get_executable_fullpath(char *inp_cmd)
@@ -59,6 +91,16 @@ char *get_executable_fullpath(char *inp_cmd)
     return NULL;
 }
 
+int is_valid_builtin_command(char *inp_cmd)
+{
+    for (size_t i = 0; i < BUILTIN_COMMAND_COUNT; i++)
+    {
+        if (strcmp(inp_cmd, BUILTIN_COMMAND_LIST[i]) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 void execute_type_command(char *inp_cmd)
 {
     if (is_valid_builtin_command(inp_cmd))
@@ -75,6 +117,14 @@ void execute_type_command(char *inp_cmd)
     }
 
     printf("%s: not found\n", inp_cmd);
+}
+
+void execute_echo_command(char *inp_cmd)
+{
+    char *inputs[10];
+    int argc = 0;
+    split_by_quotes(inp_cmd, inputs, &argc);
+    printf("%s\n", inputs[0]);
 }
 
 void execute_pwd_command()
@@ -102,14 +152,27 @@ void execute_cd_command(char *new_dir)
 
 int execute_external_process(char *input)
 {
+    char *remaining_inp = input;
     char *argv[10];
     int argc = 0;
-    char *token = strtok(input, " ");
-    while (token != NULL && argc < 10)
+
+    char *token = strtok_r(input, " ", &remaining_inp);
+    argv[argc] = token;
+    argc++;
+
+    if (contains_quotes(remaining_inp))
     {
-        argv[argc++] = token;
-        token = strtok(NULL, " ");
+        split_by_quotes(remaining_inp, argv, &argc);
     }
+    else
+    {
+        while ((token = strtok_r(NULL, " ", &remaining_inp)) && argc < 10)
+        {
+            argv[argc] = token;
+            argc++;
+        }
+    }
+
     argv[argc] = NULL;
 
     char *execPath = get_executable_fullpath(argv[0]);
@@ -160,7 +223,7 @@ int main()
 
         if (strncmp(input, ECHO_COMMAND, ECHO_COMMAND_LEN) == 0)
         {
-            printf("%s\n", input + ECHO_COMMAND_LEN + 1);
+            execute_echo_command(input + ECHO_COMMAND_LEN + 1);
             continue;
         }
 
