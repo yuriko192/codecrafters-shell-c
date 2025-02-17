@@ -41,8 +41,10 @@ int main()
          strcmp(inp_cmd, EXIT_COMMAND) == 0 ||
          strcmp(inp_cmd, TYPE_COMMAND) == 0){
         printf("%s is a shell builtin\n", inp_cmd);
-        continue;
+      }else{
+        printf("%s: not found\n", inp_cmd);
       }
+      continue;
     }
 
     printf("%s: command not found\n", input);
