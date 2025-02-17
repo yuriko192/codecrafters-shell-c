@@ -37,8 +37,8 @@ int main()
     if (strncmp(input, TYPE_COMMAND, TYPE_COMMAND_LEN) == 0)
     {
       char *inp_cmd = input + TYPE_COMMAND_LEN + 1;
-      if (strncmp(inp_cmd, ECHO_COMMAND) == 0 ||
-         strncmp(inp_cmd, EXIT_COMMAND) == 0){
+      if (strcmp(inp_cmd, ECHO_COMMAND) == 0 ||
+         strcmp(inp_cmd, EXIT_COMMAND) == 0){
         printf("%s is a shell builtin\n", inp_cmd);
         continue;
       }
