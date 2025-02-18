@@ -26,6 +26,22 @@ const char *BUILTIN_COMMAND_LIST[] = {
 
 const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILTIN_COMMAND_LIST[0]);
 
+char *get_string_until_delimiter(char *inp, char delimiter)
+{
+    size_t i = 0;
+    for (i; i < strlen(inp); i++)
+    {
+        if (inp[i] == delimiter)
+        {
+            break;
+        }
+    }
+
+    char *result = malloc((i + 1) * sizeof(char));
+    strncpy(result, inp, i);
+    return result;
+}
+
 bool contains_quotes(char *inp)
 {
     for (size_t i = 0; i < strlen(inp); i++)
@@ -93,44 +109,38 @@ void execute_type_command(char *inp_cmd)
 void execute_echo_command(char *inp_cmd)
 {
     int inp_len = strlen(inp_cmd);
-    char delim = '\0';
     bool is_spaces = true;
     for (size_t i = 0; i < inp_len; i++)
     {
         if (inp_cmd[i] == '\'' || inp_cmd[i] == '\"')
         {
+            char *string_in_quotes = get_string_until_delimiter(inp_cmd + i+1, inp_cmd[i]);
+            i += strlen(string_in_quotes)+1;
+            
+            printf("%s", string_in_quotes);
             is_spaces = false;
-            if (delim == '\0')
-            {
-                delim = inp_cmd[i];
-                continue;
-            }
-
-            if (delim == inp_cmd[i])
-            {
-                delim = '\0';
-                continue;
-            }
+            continue;
         }
 
-        if (delim == '\0' && inp_cmd[i] == ' ')
+        if (inp_cmd[i] == ' ')
         {
             if (is_spaces)
             {
                 continue;
             }
             is_spaces = true;
-        }else{
+            printf("%c", inp_cmd[i]);
+        }
+        else
+        {
             is_spaces = false;
         }
 
         
-        printf("%c", inp_cmd[i]);
 
         // printf(",%d", inp_cmd[i]);
         // printf(",%d", is_spaces);
         // printf(",%d", inp_cmd[i] == ' ');
-        // printf(",%c", delim);
         // printf("\n");
     }
     printf("\n");
