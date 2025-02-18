@@ -80,7 +80,29 @@ void execute_type_command(char *inp_cmd) {
     printf("%s: not found\n", inp_cmd);
 }
 
+
 void execute_echo_command(char *inp_cmd) {
+    int inp_len = strlen(inp_cmd);
+    char delim='\0';
+    for (size_t i = 0; i < inp_len; i++)
+    {
+        if (inp_cmd[i]=='\''||inp_cmd[i]=='\"')
+        {
+            if( delim =='\0'){
+                delim = inp_cmd[i];
+                continue;
+            }
+            if(delim == inp_cmd[i]){
+                delim='\0';
+                continue;
+            }
+        }
+        printf("%c",inp_cmd[i]);
+    }
+    printf("\n");
+}
+
+void execute_echo_command_old(char *inp_cmd) {
     char *format = "%s ";
     char *delimiter = " ";
     if (contains_quotes(inp_cmd)) {
