@@ -64,8 +64,8 @@ char *get_executable_fullpath(char *inp_cmd) {
     while (dir != NULL) {
         snprintf(full_path, sizeof(full_path), "%s/%s", dir, inp_cmd);
 
+        /* is_executable */
         if (access(full_path, X_OK) == 0) {
-            // is_executable
             free(path_dirs);
             return full_path;
         }
@@ -159,7 +159,7 @@ void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *resul
                     }
 
                     int curr_str_len = second_window - start_pointer;
-                    result[*result_start_idx] = malloc((curr_str_len+1) * sizeof(char));
+                    result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
                     strncpy(result[*result_start_idx], start_pointer, curr_str_len);
                     (*result_start_idx) += 1;
 
@@ -251,8 +251,9 @@ void execute_pwd_command() {
 
 void execute_cd_command(char *new_dir) {
     if (strncmp(new_dir, "~", 1) == 0) {
-        const char *home_dir = getenv("HOME");
+        char *home_dir = strdup(getenv("HOME"));
         snprintf(new_dir, strlen(new_dir) + strlen(home_dir), "%s%s", home_dir, new_dir + 1);
+        free(home_dir);
     }
 
     int cd_res = chdir(new_dir);
@@ -265,7 +266,22 @@ bool execute_external_process(char *input) {
     char *argv[MAX_ARGC];
     int argc = 0;
 
+    /* Old implementation */
+
+    // char *token = strtok(input, " ");
+    // while (token != NULL && argc < 10) {
+    //     argv[argc++] = token;
+    //     token = strtok(NULL, " ");
+    // }
+    // argv[argc] = NULL;
+
     split_string_with_quotes_and_space(input, argv, &argc, &MAX_ARGC);
+    /* Test Command:
+     * cat '/tmp/foo/f   65' '/tmp/foo/f   31' '/tmp/foo/f   37'
+     * should result in no file
+     * should not return command not found
+     */
+
     char *execPath = get_executable_fullpath(argv[0]);
     if (execPath == NULL) {
         return false;
