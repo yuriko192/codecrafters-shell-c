@@ -135,9 +135,23 @@ void initialize_autocomplete() {
     }
 }
 
-constexpr int max_autocomplete = 5;
+const int max_autocomplete = 5;
 
-void autocomplete_input_buffer(char *inp_buffer) {
-    struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, inp_buffer);
+char ** autocomplete_input_buffer(char **inp_buffer) {
+    struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, *inp_buffer);
     char**closest_result = get_closest_result(current_node,max_autocomplete );
+
+    return closest_result;
+}
+
+void free_remaining_autocomplete_buffer(char **buffer, int except_i) {
+    int i;
+    for (i=0;buffer[i]!=NULL;i++) {
+        if (i==except_i) {
+            continue;
+        }
+
+        free(buffer[i]);
+    }
+    free(buffer);
 }

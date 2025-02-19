@@ -23,6 +23,8 @@ extern const size_t PWD_COMMAND_LEN;
 extern const size_t CD_COMMAND_LEN;
 extern const size_t BUILTIN_COMMAND_COUNT;
 
+void initialize_autocomplete();
+
 void execute_echo_command(char *inp_cmd);
 
 void execute_pwd_command();
@@ -32,5 +34,8 @@ void execute_cd_command(char *new_dir);
 void execute_type_command(char *inp_cmd);
 
 bool execute_external_process(char *input);
+
+char ** autocomplete_input_buffer(char **inp_buffer);
+void free_remaining_autocomplete_buffer(char **buffer, int except_i) ;
 
 #endif //BUILTINS_H

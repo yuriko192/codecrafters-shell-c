@@ -3,12 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include <termios.h>
 
 #include "builtins.h"
-#include "shell.h"
-
-
 
 
 char *get_string_until_delimiter(char *inp, char delimiter) {
@@ -33,9 +29,9 @@ bool contains_quotes(char *inp) {
     return false;
 }
 
-void get_input(char**input) {
+void get_input(char **input) {
     // fgets(inp_buffer, 100, stdin);
-    char * inp_buffer = malloc((100+ 1) * sizeof(char));
+    char *inp_buffer = malloc((100 + 1) * sizeof(char));
     int i = 0;
     while (true) {
         const char c = getchar();
@@ -43,20 +39,30 @@ void get_input(char**input) {
             inp_buffer[i] = '\0';
             break;
         }
-        if (c=='\t') {
-            // autocomplete(&inp_buffer, &i);
+        if (c == '\t') {
+            char ** potential_inputs = autocomplete_input_buffer(&inp_buffer);
+            i+=strlen(potential_inputs[0])+1;
+            printf("%s ",potential_inputs[0]);
+            strcat(inp_buffer,potential_inputs[0]);
+            strcat(inp_buffer," ");
+
+            free_remaining_autocomplete_buffer(potential_inputs, 0);
             continue;
         }
+
+        // printf("%c", c);
         inp_buffer[i] = c;
-        i+=1;
+        i += 1;
     }
 
+    // printf("\n");
     *input = inp_buffer;
 }
 
 
 int main() {
     setbuf(stdout, NULL);
+    initialize_autocomplete();
 
 
     while (1) {
