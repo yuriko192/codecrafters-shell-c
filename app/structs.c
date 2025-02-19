@@ -10,9 +10,9 @@
 
 const int trie_child_len = 26;
 
-struct TrieNode* initialize_trie_node() {
+struct TrieNode *initialize_trie_node() {
     struct TrieNode *root = malloc(sizeof(struct TrieNode));
-    root->child = (struct TrieNode **)malloc(trie_child_len* sizeof(struct TrieNode*));
+    root->child = (struct TrieNode **) malloc(trie_child_len * sizeof(struct TrieNode *));
     root->is_end_of_word = false;
     return root;
 }
@@ -21,11 +21,11 @@ void add_to_trie_node(struct TrieNode *root, char *word) {
     struct TrieNode *node = root;
     char *character = word;
     while (*character != '\0') {
-        if (node->child[*character - 'a']==NULL) {
+        if (node->child[*character - 'a'] == NULL) {
             node->child[*character - 'a'] = initialize_trie_node();
         }
         node = node->child[*character - 'a'];
-        character+=1;
+        character += 1;
     }
     node->is_end_of_word = true;
 }
@@ -34,16 +34,20 @@ struct TrieNode *get_trie_from_word(struct TrieNode *root, char *word) {
     struct TrieNode *node = root;
     char *character = word;
     while (*character != '\0') {
-        if (node->child[*character - 'a']==NULL) {
+        int char_idx = *character - 'a';
+        if (char_idx < 0 || char_idx >= trie_child_len) {
             return node;
         }
-        node = node->child[*character - 'a'];
-        character+=1;
+        if (node->child[char_idx] == NULL) {
+            return node;
+        }
+        node = node->child[char_idx];
+        character += 1;
     }
     return node;
 }
 
-char ** get_closest_result(struct TrieNode *root, int max_result) {
+char **get_closest_result(struct TrieNode *root, int max_result) {
     struct TrieNode *node = root;
     char *result = malloc(50 * sizeof(char));
     char **result_arr = malloc(sizeof(char *) * 2);
@@ -52,8 +56,8 @@ char ** get_closest_result(struct TrieNode *root, int max_result) {
     while (!node->is_end_of_word) {
         int i;
         for (i = 0; i < trie_child_len; ++i) {
-            if (node->child[i]!=NULL) {
-                result[result_i] = 'a'+i;
+            if (node->child[i] != NULL) {
+                result[result_i] = 'a' + i;
                 result_i++;
                 node = node->child[i];
                 break;
@@ -67,9 +71,7 @@ char ** get_closest_result(struct TrieNode *root, int max_result) {
     return result_arr;
 }
 
-char ** _get_closest_result(struct TrieNode *root, int max_result) {
+char **_get_closest_result(struct TrieNode *root, int max_result) {
     // struct TrieNode *node = root;
     // char *result = malloc(50 * sizeof(char));
-
-
 }

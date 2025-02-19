@@ -42,18 +42,29 @@ void get_input(char **input) {
         if (c == '\t') {
             char ** potential_inputs = autocomplete_input_buffer(&inp_buffer);
             i+=strlen(potential_inputs[0]);
-            // printf("%s ",potential_inputs[0]);
             strcat(inp_buffer,potential_inputs[0]);
             inp_buffer[i] = '\0';
 
             printf("\r$ %s", inp_buffer);
             fflush(stdout);
 
-            free_remaining_autocomplete_buffer(potential_inputs, 0);
+            free_remaining_autocomplete_buffer(potential_inputs, -1);
+            continue;
+        }
+
+        if (c=='\b' || c == 127) {
+            if (i==0) {
+                continue;
+            }
+            i--;
+            inp_buffer[i] = '\0';
+            printf("\r$ %s \b", inp_buffer);
+            fflush(stdout);
             continue;
         }
 
         printf("%c", c);
+        fflush(stdout);
         if (c == '\n') {
             inp_buffer[i] = '\0';
             break;
