@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "builtins.h"
+#include "shell.h"
 
 
 char *get_string_until_delimiter(char *inp, char delimiter) {
@@ -30,32 +31,39 @@ bool contains_quotes(char *inp) {
 }
 
 void get_input(char **input) {
-    // fgets(inp_buffer, 100, stdin);
+    printf("$ ");
+    fflush(stdout);
+
+    set_terminal_raw_mode();
     char *inp_buffer = malloc((100 + 1) * sizeof(char));
     int i = 0;
     while (true) {
         const char c = getchar();
-        if (c == '\n') {
-            inp_buffer[i] = '\0';
-            break;
-        }
         if (c == '\t') {
             char ** potential_inputs = autocomplete_input_buffer(&inp_buffer);
-            i+=strlen(potential_inputs[0])+1;
-            printf("%s ",potential_inputs[0]);
+            i+=strlen(potential_inputs[0]);
+            // printf("%s ",potential_inputs[0]);
             strcat(inp_buffer,potential_inputs[0]);
-            strcat(inp_buffer," ");
+            inp_buffer[i] = '\0';
+
+            printf("\r$ %s", inp_buffer);
+            fflush(stdout);
 
             free_remaining_autocomplete_buffer(potential_inputs, 0);
             continue;
         }
 
-        // printf("%c", c);
+        printf("%c", c);
+        if (c == '\n') {
+            inp_buffer[i] = '\0';
+            break;
+        }
+
         inp_buffer[i] = c;
         i += 1;
     }
 
-    // printf("\n");
+    restore_terminal_mode();
     *input = inp_buffer;
 }
 
@@ -66,7 +74,7 @@ int main() {
 
 
     while (1) {
-        printf("$ ");
+
 
         char *input;
         get_input(&input);

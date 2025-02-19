@@ -8,4 +8,7 @@
 char getch(void);
 char getche(void);
 
+void set_terminal_raw_mode();
+void restore_terminal_mode();
+
 #endif //SHELL_H
