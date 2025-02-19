@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 
 
+#include "structs.h"
 #include "utils.h"
 
 
@@ -36,11 +37,12 @@ const size_t PWD_COMMAND_LEN = sizeof(PWD_COMMAND) - 1;
 const size_t CD_COMMAND_LEN = sizeof(CD_COMMAND) - 1;
 const size_t BUILTIN_COMMAND_COUNT = sizeof(BUILTIN_COMMAND_LIST) / sizeof(BUILTIN_COMMAND_LIST[0]);
 
+struct TrieNode *autocomplete_trie;
+
 void execute_echo_command(char *inp_cmd) {
     trim_space_with_quotes(inp_cmd);
     printf("%s\n", inp_cmd);
 }
-
 
 void execute_pwd_command() {
     char cwd[1024];
@@ -84,7 +86,6 @@ void execute_type_command(char *inp_cmd) {
     printf("%s: not found\n", inp_cmd);
 }
 
-
 bool execute_external_process(char *input) {
     char *argv[MAX_ARGC];
     int argc = 0;
@@ -125,4 +126,18 @@ bool execute_external_process(char *input) {
     int status;
     waitpid(pid, &status, 0);
     return true;
+}
+
+void initialize_autocomplete() {
+    autocomplete_trie = initialize_trie_node();
+    for (int i = 0; i< BUILTIN_COMMAND_COUNT; i++) {
+        add_to_trie_node(autocomplete_trie, BUILTIN_COMMAND_LIST[i]);
+    }
+}
+
+constexpr int max_autocomplete = 5;
+
+void autocomplete_input_buffer(char *inp_buffer) {
+    struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, inp_buffer);
+    char**closest_result = get_closest_result(current_node,max_autocomplete );
 }

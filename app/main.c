@@ -3,7 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <termios.h>
+
 #include "builtins.h"
+#include "shell.h"
+
 
 
 
@@ -29,17 +33,37 @@ bool contains_quotes(char *inp) {
     return false;
 }
 
+void get_input(char**input) {
+    // fgets(inp_buffer, 100, stdin);
+    char * inp_buffer = malloc((100+ 1) * sizeof(char));
+    int i = 0;
+    while (true) {
+        const char c = getchar();
+        if (c == '\n') {
+            inp_buffer[i] = '\0';
+            break;
+        }
+        if (c=='\t') {
+            // autocomplete(&inp_buffer, &i);
+            continue;
+        }
+        inp_buffer[i] = c;
+        i+=1;
+    }
+
+    *input = inp_buffer;
+}
+
 
 int main() {
     setbuf(stdout, NULL);
 
-    char input[100];
 
     while (1) {
         printf("$ ");
-        fgets(input, 100, stdin);
 
-        input[strlen(input) - 1] = '\0';
+        char *input;
+        get_input(&input);
 
         if (strncmp(input, EXIT_COMMAND, EXIT_COMMAND_LEN) == 0) {
             return 0;

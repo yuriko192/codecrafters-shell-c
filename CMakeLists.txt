@@ -8,4 +8,8 @@ add_executable(codecrafters_shell app/main.c
         app/builtins.c
         app/utils.h
         app/utils.c
+        app/shell.c
+        app/shell.h
+        app/structs.c
+        app/structs.h
 )

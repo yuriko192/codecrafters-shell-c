@@ -12,7 +12,6 @@
 
 const int MAX_ARGC = 10;
 
-
 void trim_space_with_quotes(char *inp_cmd) {
     char *first_window = inp_cmd;
     char *second_window = inp_cmd;
@@ -77,7 +76,6 @@ char *get_executable_fullpath(char *inp_cmd) {
     free(path_dirs);
     return NULL;
 }
-
 
 void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *result_start_idx,
                                         const int *max_size) {
@@ -175,4 +173,3 @@ void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *resul
 
     result[*result_start_idx] = NULL;
 };
-
