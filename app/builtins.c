@@ -181,7 +181,7 @@ void initialize_autocomplete() {
     free(path_dirs);
 }
 
-const int max_autocomplete = 5;
+const int max_autocomplete = 20;
 
 char **autocomplete_input_buffer(char **inp_buffer) {
     struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, *inp_buffer);

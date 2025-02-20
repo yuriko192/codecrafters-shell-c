@@ -36,7 +36,7 @@ void add_to_trie_node(struct TrieNode *root, char *word) {
         return;
     }
 
-    // printf("added: %s\n", word);
+    printf("added: %s\n", word);
 
     while (*character != '\0') {
         int curr_char = *character - 'a';
@@ -72,31 +72,135 @@ struct TrieNode *get_trie_from_word(struct TrieNode *root, char *word) {
     return node;
 }
 
+struct AutocompleteNode {
+    struct TrieNode* trie_node;
+    int char_index;
+    int node_depth;
+};
+
+void append_autocomplete_trie_child_to_list(struct SingleLinkedList *list, struct TrieNode *trie_node, int node_depth) {
+    for (int i = 0; i < trie_child_len; i++) {
+        if (trie_node->child[i] == NULL) {
+            continue;
+        }
+        struct AutocompleteNode *autocomplete_node = malloc(sizeof(struct AutocompleteNode));
+        autocomplete_node->trie_node = trie_node->child[i];
+        autocomplete_node->char_index = i;
+        autocomplete_node->node_depth = node_depth;
+        enqueue_single_linked_list(list,autocomplete_node);
+    }
+}
+
 char **get_closest_result(struct TrieNode *root, int max_result) {
     struct TrieNode *node = root;
     char *result = malloc(50 * sizeof(char));
-    char **result_arr = malloc(sizeof(char *) * 2);
+    char **result_arr = malloc(sizeof(char *) * (max_result+1));
     int result_i = 0;
+    /*
+     *  append_autocomplete_trie_child_to_list(list list, trie node, int node_depth)
+     * for i,x in node.child:
+     *      if x == null:
+     *          continue
+     *      list.add({node.child, curr_depth, i})
+     *
+     *
+     *  for node in list:
+     *      result[node.depth] = node.char;
+     *      if node.is_end_of_word:
+     *          result[node.depth+1] = '\0'
+     *          result_arr.append(node)
+     *      append_autocomplete_trie_child_to_list(list, node.node, node.depth+1)
+     */
 
-    while (!node->is_end_of_word) {
-        int i;
-        for (i = 0; i < trie_child_len; ++i) {
-            if (node->child[i] != NULL) {
-                result[result_i] = 'a' + i;
-                result_i++;
-                node = node->child[i];
+    struct SingleLinkedList *list =  initialize_single_linked_list();
+    append_autocomplete_trie_child_to_list(list, root, 0);
+
+    while (list->length!=0) {
+        struct AutocompleteNode *node = (struct AutocompleteNode*) dequeue_single_linked_list(list);
+
+        char current_char = 'a' + node->char_index;
+        int i = node->node_depth;
+        struct TrieNode *trie_node = node->trie_node;
+        free(node);
+
+        result[i] = current_char;
+        if (trie_node->is_end_of_word) {
+            result[i+1] = '\0';
+            result_arr[result_i] = strdup(result);
+            result_i++;
+
+            if (result_i==max_result) {
                 break;
             }
         }
+
+        append_autocomplete_trie_child_to_list(list, trie_node, i + 1);
     }
 
-    result[result_i] = '\0';
-    result_arr[0] = result;
-    result_arr[1] = NULL;
+    result_arr[result_i] = NULL;
+    free_single_linked_list(list);
     return result_arr;
 }
 
 char **_get_closest_result(struct TrieNode *root, int max_result) {
     // struct TrieNode *node = root;
     // char *result = malloc(50 * sizeof(char));
+}
+
+struct LinkedListNode *initialize_linked_list_node(void * value) {
+    struct LinkedListNode *node = malloc(sizeof(struct LinkedListNode));
+    node->value = value;
+    node->next = NULL;
+    node->prev = NULL;
+    return node;
+}
+
+struct SingleLinkedList *initialize_single_linked_list() {
+    struct SingleLinkedList *list = malloc(sizeof(struct SingleLinkedList));
+    list->top = NULL;
+    list->bottom = NULL;
+    list->length = 0;
+    return list;
+}
+
+void enqueue_single_linked_list(struct SingleLinkedList *list, void * value) {
+    struct LinkedListNode *node = initialize_linked_list_node(value);
+
+    if (list->top == NULL) {
+        list->top = node;
+    }else {
+        list->bottom->next = node;
+        node->prev = list->bottom;
+    }
+
+    list->bottom = node;
+    list->length++;
+}
+
+void *dequeue_single_linked_list(struct SingleLinkedList *list) {
+    struct LinkedListNode *node = list->top;
+
+    if (node==NULL) {
+        return NULL;
+    }
+
+    list->length--;
+    void *value = node->value;
+
+    list->top = node->next;
+    if (list->top==NULL) {
+        list->bottom = NULL;
+    }else {
+        list->top->prev = NULL;
+    }
+
+    free(node);
+    return value;
+}
+
+void free_single_linked_list(struct SingleLinkedList *list) {
+    while (list->length>0) {
+        dequeue_single_linked_list(list);
+    }
+    free(list);
 }
