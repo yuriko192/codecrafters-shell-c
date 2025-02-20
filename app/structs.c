@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 const int trie_child_len = 26;
 
@@ -17,14 +18,33 @@ struct TrieNode *initialize_trie_node() {
     return root;
 }
 
+bool is_valid_trie_input(char *word) {
+    for (char *character = word; *character != '\0'; character++) {
+        int curr_char = *character - 'a';
+        if (curr_char < 0 || curr_char >= trie_child_len) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void add_to_trie_node(struct TrieNode *root, char *word) {
     struct TrieNode *node = root;
     char *character = word;
+
+    if (!is_valid_trie_input(word)) {
+        return;
+    }
+
+    // printf("added: %s\n", word);
+
     while (*character != '\0') {
-        if (node->child[*character - 'a'] == NULL) {
-            node->child[*character - 'a'] = initialize_trie_node();
+        int curr_char = *character - 'a';
+        if (node->child[curr_char] == NULL) {
+            node->child[curr_char] = initialize_trie_node();
         }
-        node = node->child[*character - 'a'];
+
+        node = node->child[curr_char];
         character += 1;
     }
     node->is_end_of_word = true;

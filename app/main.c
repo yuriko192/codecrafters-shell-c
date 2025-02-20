@@ -40,6 +40,7 @@ void get_input(char **input) {
     while (true) {
         const char c = getchar();
         if (c == '\t') {
+            inp_buffer[i] = '\0';
             char **potential_inputs = autocomplete_input_buffer(&inp_buffer);
             if (potential_inputs == NULL) {
                 continue;

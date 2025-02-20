@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <dirent.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 
 #include "structs.h"
@@ -130,27 +132,71 @@ bool execute_external_process(char *input) {
 
 void initialize_autocomplete() {
     autocomplete_trie = initialize_trie_node();
-    for (int i = 0; i< BUILTIN_COMMAND_COUNT; i++) {
+    for (int i = 0; i < BUILTIN_COMMAND_COUNT; i++) {
         add_to_trie_node(autocomplete_trie, BUILTIN_COMMAND_LIST[i]);
     }
+
+    char *path_env = getenv("PATH");
+    if (path_env == NULL) {
+        return;
+    }
+
+    char *path_dirs = strdup(path_env);
+    char *dir = strtok(path_dirs, ":");
+    static char full_path[1024];
+
+    while (dir != NULL) {
+        // printf("Starting init: %s\n", dir);
+        DIR *dir_content = opendir(dir);
+
+        if (dir_content == NULL) {
+            dir = strtok(NULL, ":");
+            continue;
+        }
+
+        struct dirent *de; // Pointer for directory entry
+
+        // printf("Starting reading dir content: %s\n", dir);
+        while ((de = readdir(dir_content)) != NULL) {
+            snprintf(full_path, sizeof(full_path), "%s/%s", dir, de->d_name);
+
+            struct stat path_stat;
+            if (stat(full_path, &path_stat) != 0) {
+                continue;
+            }
+            if (S_ISDIR(path_stat.st_mode)) {
+                continue;
+            }
+
+            /* is_executable */
+            if (access(full_path, X_OK) == 0) {
+                add_to_trie_node(autocomplete_trie, de->d_name);
+            }
+        }
+        closedir(dir_content);
+        // printf("Initialization Success: %s\n", dir);
+        dir = strtok(NULL, ":");
+    }
+
+    free(path_dirs);
 }
 
 const int max_autocomplete = 5;
 
-char ** autocomplete_input_buffer(char **inp_buffer) {
+char **autocomplete_input_buffer(char **inp_buffer) {
     struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, *inp_buffer);
     if (current_node == NULL) {
         return NULL;
     }
 
-    char**closest_result = get_closest_result(current_node,max_autocomplete );
+    char **closest_result = get_closest_result(current_node, max_autocomplete);
     return closest_result;
 }
 
 void free_remaining_autocomplete_buffer(char **buffer, int except_i) {
     int i;
-    for (i=0;buffer[i]!=NULL;i++) {
-        if (i==except_i) {
+    for (i = 0; buffer[i] != NULL; i++) {
+        if (i == except_i) {
             continue;
         }
 
