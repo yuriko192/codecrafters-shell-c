@@ -7,29 +7,6 @@
 #include "builtins.h"
 #include "shell.h"
 
-
-char *get_string_until_delimiter(char *inp, char delimiter) {
-    size_t i = 0;
-    for (i; i < strlen(inp); i++) {
-        if (inp[i] == delimiter) {
-            break;
-        }
-    }
-
-    char *result = malloc((i + 1) * sizeof(char));
-    strncpy(result, inp, i);
-    return result;
-}
-
-bool contains_quotes(char *inp) {
-    for (size_t i = 0; i < strlen(inp); i++) {
-        if (inp[i] == '\'' || inp[i] == '"') {
-            return true;
-        }
-    }
-    return false;
-}
-
 void get_input(char **input) {
     printf("$ ");
     fflush(stdout);
