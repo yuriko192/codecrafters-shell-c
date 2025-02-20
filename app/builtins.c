@@ -130,10 +130,15 @@ bool execute_external_process(char *input) {
     return true;
 }
 
+const bool is_autocomplete_path = true;
 void initialize_autocomplete() {
     autocomplete_trie = initialize_trie_node();
     for (int i = 0; i < BUILTIN_COMMAND_COUNT; i++) {
         add_to_trie_node(autocomplete_trie, BUILTIN_COMMAND_LIST[i]);
+    }
+
+    if (! is_autocomplete_path) {
+        return;
     }
 
     char *path_env = getenv("PATH");
