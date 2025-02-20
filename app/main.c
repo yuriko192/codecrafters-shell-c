@@ -40,9 +40,13 @@ void get_input(char **input) {
     while (true) {
         const char c = getchar();
         if (c == '\t') {
-            char ** potential_inputs = autocomplete_input_buffer(&inp_buffer);
-            i+=strlen(potential_inputs[0]);
-            strcat(inp_buffer,potential_inputs[0]);
+            char **potential_inputs = autocomplete_input_buffer(&inp_buffer);
+            if (potential_inputs == NULL) {
+                continue;
+            }
+
+            i += strlen(potential_inputs[0]);
+            strcat(inp_buffer, potential_inputs[0]);
             inp_buffer[i] = '\0';
 
             printf("\r$ %s", inp_buffer);
@@ -52,8 +56,8 @@ void get_input(char **input) {
             continue;
         }
 
-        if (c=='\b' || c == 127) {
-            if (i==0) {
+        if (c == '\b' || c == 127) {
+            if (i == 0) {
                 continue;
             }
             i--;
@@ -85,8 +89,6 @@ int main() {
 
 
     while (1) {
-
-
         char *input;
         get_input(&input);
 

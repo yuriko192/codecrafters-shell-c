@@ -139,8 +139,11 @@ const int max_autocomplete = 5;
 
 char ** autocomplete_input_buffer(char **inp_buffer) {
     struct TrieNode *current_node = get_trie_from_word(autocomplete_trie, *inp_buffer);
-    char**closest_result = get_closest_result(current_node,max_autocomplete );
+    if (current_node == NULL) {
+        return NULL;
+    }
 
+    char**closest_result = get_closest_result(current_node,max_autocomplete );
     return closest_result;
 }
 

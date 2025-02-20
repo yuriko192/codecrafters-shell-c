@@ -35,15 +35,20 @@ struct TrieNode *get_trie_from_word(struct TrieNode *root, char *word) {
     char *character = word;
     while (*character != '\0') {
         int char_idx = *character - 'a';
+        /* Invalid input character */
         if (char_idx < 0 || char_idx >= trie_child_len) {
-            return node;
+            return NULL;
         }
+
+        /* Next character is not in dictionary */
         if (node->child[char_idx] == NULL) {
-            return node;
+            return NULL;
         }
+
         node = node->child[char_idx];
         character += 1;
     }
+
     return node;
 }
 
