@@ -17,7 +17,7 @@ void trim_space_with_quotes(char *inp_cmd) {
     char *second_window = inp_cmd;
     char quote_style = 0;
 
-    bool was_space = true;
+    bool was_space = false;
     bool was_backslash = false;
     bool is_inside_quote = false;
     for (; *second_window != '\0'; second_window++) {
@@ -29,7 +29,7 @@ void trim_space_with_quotes(char *inp_cmd) {
                 continue;
             }
 
-            is_inside_quote = !is_inside_quote;
+            is_inside_quote = false;
             quote_style = 0;
             continue;
         }
@@ -44,12 +44,14 @@ void trim_space_with_quotes(char *inp_cmd) {
 
         /* Do special actions depending on symbols */
         if (*second_window == '\\') {
+            was_space = false;
             was_backslash=true;
             continue;
         }
 
         if (*second_window == '\'' || *second_window == '"') {
-            is_inside_quote = !is_inside_quote;
+            was_space = false;
+            is_inside_quote = true;
             quote_style = *second_window;
             continue;
         }
