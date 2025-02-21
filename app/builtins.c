@@ -91,22 +91,10 @@ void execute_type_command(char *inp_cmd) {
 bool execute_external_process(char *input) {
     char *argv[MAX_ARGC];
     int argc = 0;
+    // memset(argv, 0, sizeof(argv));
 
-    /* Old implementation */
-
-    // char *token = strtok(input, " ");
-    // while (token != NULL && argc < 10) {
-    //     argv[argc++] = token;
-    //     token = strtok(NULL, " ");
-    // }
-    // argv[argc] = NULL;
-
-    split_string_with_quotes_and_space(input, argv, &argc, &MAX_ARGC);
-    /* Test Command:
-     * cat '/tmp/foo/f   65' '/tmp/foo/f   31' '/tmp/foo/f   37'
-     * should result in no file
-     * should not return command not found
-     */
+    split_input_args(input, argv, &argc, &MAX_ARGC);
+    argv[argc] = 0;
 
     char *execPath = get_executable_fullpath(argv[0]);
     if (execPath == NULL) {

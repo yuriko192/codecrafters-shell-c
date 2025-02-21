@@ -18,33 +18,52 @@ void trim_space_with_quotes(char *inp_cmd) {
     char quote_style = 0;
 
     bool was_space = true;
+    bool was_backslash = false;
     bool is_inside_quote = false;
-    for (second_window; *second_window != '\0'; second_window++) {
-        if (*second_window == '\'' || *second_window == '"') {
-            if (!is_inside_quote) {
-                is_inside_quote = !is_inside_quote;
-                quote_style = *second_window;
+    for (; *second_window != '\0'; second_window++) {
+        /* while inside quote, just take everything */
+        if (is_inside_quote) {
+            if (quote_style!=*second_window) {
+                *first_window = *second_window;
+                first_window++;
                 continue;
-            } else {
-                if (quote_style == *second_window) {
-                    is_inside_quote = !is_inside_quote;
-                    quote_style = 0;
-                    continue;
-                }
             }
+
+            is_inside_quote = !is_inside_quote;
+            quote_style = 0;
+            continue;
+        }
+
+        /* Take whatever char currently if was backslash */
+        if (was_backslash) {
+            *first_window = *second_window;
+            first_window++;
+            was_backslash = false;
+            continue;
+        }
+
+        /* Do special actions depending on symbols */
+        if (*second_window == '\\') {
+            was_backslash=true;
+            continue;
+        }
+
+        if (*second_window == '\'' || *second_window == '"') {
+            is_inside_quote = !is_inside_quote;
+            quote_style = *second_window;
+            continue;
         }
 
         if (*second_window == ' ') {
-            if (!is_inside_quote) {
-                if (was_space) {
-                    continue;
-                }
-                was_space = true;
+            if (was_space) {
+                continue;
             }
+            was_space = true;
         } else {
             was_space = false;
         }
 
+        /* no special symbol, take current char */
         *first_window = *second_window;
         first_window++;
     }
@@ -77,74 +96,90 @@ char *get_executable_fullpath(char *inp_cmd) {
     return NULL;
 }
 
-void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *result_start_idx,
+void split_input_args(char *inp_cmd, char **result, int *result_start_idx,
                                         const int *max_size) {
     /*
      * unhandled case:
      * - outside of quote case: quote inside of string (ex: `asd"bcd`)
      */
-    char *second_window = inp_cmd;
     char quote_style = 0;
+    char *inp_iter = inp_cmd;
 
-    char *start_pointer = second_window;
+    char *start_pointer = inp_iter;
+    char *end_pointer = inp_iter;
+
 
     bool was_space = true;
+    bool was_backslash = false;
     bool is_inside_quote = false;
     bool prev_group_is_inside_quote = false;
-    for (second_window; *second_window != '\0'; second_window++) {
-        if (*second_window == '\'' || *second_window == '"') {
-            if (!is_inside_quote) {
-                /* start of quote, mark as start of current group */
-                start_pointer = second_window + 1;
-                is_inside_quote = !is_inside_quote;
-                quote_style = *second_window;
+    for (; *inp_iter != '\0'; inp_iter++, end_pointer++) {
+        *end_pointer = *inp_iter;
+        if (is_inside_quote) {
+            if (quote_style != *end_pointer) {
                 continue;
-            } else {
-                if (quote_style == *second_window) {
-                    /* end of quote, mark as end of current group
-                     * append the content of group to result array
-                     */
-                    prev_group_is_inside_quote = true;
-
-                    int curr_str_len = second_window - start_pointer;
-                    result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
-                    strncpy(result[*result_start_idx], start_pointer, curr_str_len);
-                    (*result_start_idx) += 1;
-
-                    if (*result_start_idx == *max_size) {
-                        return;
-                    }
-
-                    is_inside_quote = !is_inside_quote;
-                    quote_style = 0;
-                    continue;
-                }
             }
+            /* end of quote, mark as end of current group
+             * append the content of group to result array
+             */
+            prev_group_is_inside_quote = true;
+
+            int curr_str_len = end_pointer - start_pointer;
+            result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
+            strncpy(result[*result_start_idx], start_pointer, curr_str_len);
+            result[*result_start_idx][curr_str_len] = '\0';
+            (*result_start_idx) += 1;
+
+            if (*result_start_idx == *max_size) {
+                return;
+            }
+
+            is_inside_quote = !is_inside_quote;
+            quote_style = 0;
+            continue;
         }
 
-        if (*second_window == ' ') {
-            if (!is_inside_quote) {
-                if (was_space) {
-                    continue;
-                } else {
-                    /* outside of quotes
-                     * start of space, end of current string group
-                     * append string content to result
-                     */
-                    if (prev_group_is_inside_quote) {
-                        continue;
-                    }
+        if (was_backslash) {
+            was_backslash = false;
+            continue;
+        }
 
-                    int curr_str_len = second_window - start_pointer;
-                    result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
-                    strncpy(result[*result_start_idx], start_pointer, curr_str_len);
-                    (*result_start_idx) += 1;
+        if (*end_pointer == '\\') {
+            end_pointer-=1;
+            was_backslash=true;
+            continue;
+        }
 
-                    if (*result_start_idx == *max_size) {
-                        return;
-                    }
-                }
-                was_space = true;
+        if (*end_pointer == '\'' || *end_pointer == '"') {
+            /* start of quote, mark as start of current group */
+            start_pointer = end_pointer + 1;
+            is_inside_quote = !is_inside_quote;
+            quote_style = *end_pointer;
+            continue;
+        }
+
+        if (*end_pointer == ' ') {
+            if (was_space) {
+                continue;
+            }
+            was_space = true;
+
+            /* outside of quotes
+             * start of space, end of current string group
+             * append string content to result
+             */
+            if (prev_group_is_inside_quote) {
+                continue;
+            }
+
+            int curr_str_len = end_pointer - start_pointer;
+            result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
+            strncpy(result[*result_start_idx], start_pointer, curr_str_len);
+            result[*result_start_idx][curr_str_len] = '\0';
+            (*result_start_idx) += 1;
+
+            if (*result_start_idx == *max_size) {
+                return;
             }
         } else {
             /* outside of quotes
@@ -152,7 +187,7 @@ void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *resul
              */
             if (was_space && !is_inside_quote) {
                 prev_group_is_inside_quote = false;
-                start_pointer = second_window;
+                start_pointer = end_pointer;
             }
             was_space = false;
         }
@@ -162,14 +197,14 @@ void split_string_with_quotes_and_space(char *inp_cmd, char **result, int *resul
         return;
     }
 
-    int curr_str_len = second_window - start_pointer;
+    int curr_str_len = end_pointer - start_pointer;
     result[*result_start_idx] = malloc((curr_str_len + 1) * sizeof(char));
     strncpy(result[*result_start_idx], start_pointer, curr_str_len);
+    result[*result_start_idx][curr_str_len] = '\0';
     (*result_start_idx) += 1;
 
     if (*result_start_idx == *max_size) {
         return;
     }
 
-    result[*result_start_idx] = NULL;
 };
