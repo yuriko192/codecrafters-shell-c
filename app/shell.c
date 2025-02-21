@@ -14,8 +14,7 @@ void set_terminal_raw_mode() {
     struct termios new_settings;
     tcgetattr(STDIN_FILENO, &original_settings);
     new_settings = original_settings;
-    new_settings.c_lflag &=
-        ~(ICANON | ECHO);
+    new_settings.c_lflag &= ~(ICANON | ECHO);
     new_settings.c_cc[VMIN] = 1;
     new_settings.c_cc[VTIME] = 0;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);

@@ -30,10 +30,13 @@ void get_input(char **input) {
                 potential_input_idx++;
             } else {
                 is_tab = true;
+
                 strcpy(original_input_buffer, inp_buffer);
                 original_input_len = i;
+
                 potential_inputs = autocomplete_input_buffer(&inp_buffer);
                 potential_input_idx = 0;
+
                 old_input_len = 0;
             }
 
@@ -48,7 +51,7 @@ void get_input(char **input) {
 
             char *curr_potential_input = potential_inputs[potential_input_idx];
             int curr_input_len = strlen(curr_potential_input);
-            int len_difference = old_input_len - curr_input_len;
+            int len_difference = old_input_len - curr_input_len+1;
 
             i = original_input_len + curr_input_len;
             strcpy(inp_buffer, original_input_buffer);
@@ -56,7 +59,9 @@ void get_input(char **input) {
             inp_buffer[i] = '\0';
 
             old_input_len = curr_input_len;
-            printf("\r$ %s", inp_buffer);
+            printf("\r$ %s ", inp_buffer);
+
+            /* clean input prompt */
             if (len_difference > 0) {
                 for (int j = 0; j < len_difference; ++j) {
                     printf(" ");
@@ -65,14 +70,16 @@ void get_input(char **input) {
                     printf("\b");
                 }
             }
-            fflush(stdout);
 
+            fflush(stdout);
             continue;
         }
 
         if (is_tab) {
             free_remaining_autocomplete_buffer(potential_inputs, -1);
             is_tab = false;
+            inp_buffer[i] = ' ';
+            i++;
         }
 
         if (c == '\b' || c == 127) {
@@ -94,7 +101,7 @@ void get_input(char **input) {
         }
 
         inp_buffer[i] = c;
-        i += 1;
+        i++;
     }
 
     restore_terminal_mode();
