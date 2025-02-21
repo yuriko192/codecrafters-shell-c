@@ -23,11 +23,22 @@ void trim_space_with_quotes(char *inp_cmd) {
     for (; *second_window != '\0'; second_window++) {
         /* while inside quote, just take everything */
         if (is_inside_quote) {
+            if (quote_style=='"' && '\\'==*second_window) {
+                char next_char = *(second_window+1);
+                if (next_char=='\\' || next_char=='"' || next_char=='$') {
+                    *first_window = next_char;
+                    first_window++;
+                    second_window++;
+                    continue;
+                }
+            }
+
             if (quote_style!=*second_window) {
                 *first_window = *second_window;
                 first_window++;
                 continue;
             }
+
 
             is_inside_quote = false;
             quote_style = 0;
@@ -118,6 +129,13 @@ void split_input_args(char *inp_cmd, char **result, int *result_start_idx,
     for (; *inp_iter != '\0'; inp_iter++, end_pointer++) {
         *end_pointer = *inp_iter;
         if (is_inside_quote) {
+            if (quote_style=='"' && '\\'==*inp_iter) {
+                char next_char = *(inp_iter+1);
+                if (next_char=='\\' || next_char=='"' || next_char=='$') {
+                    end_pointer-=1;
+                    continue;
+                }
+            }
             if (quote_style != *end_pointer) {
                 continue;
             }
