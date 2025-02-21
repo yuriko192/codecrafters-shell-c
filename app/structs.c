@@ -36,7 +36,7 @@ void add_to_trie_node(struct TrieNode *root, char *word) {
         return;
     }
 
-    printf("added: %s\n", word);
+    // printf("added: %s\n", word);
 
     while (*character != '\0') {
         int curr_char = *character - 'a';

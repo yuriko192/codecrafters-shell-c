@@ -130,7 +130,7 @@ bool execute_external_process(char *input) {
     return true;
 }
 
-const bool is_autocomplete_path = true;
+const bool is_autocomplete_path = false;
 void initialize_autocomplete() {
     autocomplete_trie = initialize_trie_node();
     for (int i = 0; i < BUILTIN_COMMAND_COUNT; i++) {
