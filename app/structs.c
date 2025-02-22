@@ -14,6 +14,7 @@ const int trie_child_len = 26;
 struct TrieNode *initialize_trie_node() {
     struct TrieNode *root = malloc(sizeof(struct TrieNode));
     root->child = (struct TrieNode **) malloc(trie_child_len * sizeof(struct TrieNode *));
+    memset(root->child, 0, sizeof(root->child));
     root->is_end_of_word = false;
     return root;
 }
